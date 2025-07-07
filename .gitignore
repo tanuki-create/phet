@@ -1,0 +1,20 @@
+# Python virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Generated content directories
+output/
+archive/
+
+# Input images
+input/*.jpg
+input/*.jpeg
+input/*.png
+input/*.bmp
+input/*.tiff
+
+# macOS specific files
+.DS_Store 
