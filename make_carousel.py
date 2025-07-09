@@ -141,11 +141,15 @@ def main():
         print(f"❌ テキスト設定ファイルが見つかりません: {args.text_json}")
         sys.exit(1)
 
-    args.out_dir.mkdir(parents=True, exist_ok=True)
+    # タイムスタンプ付きの出力ディレクトリを作成
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_output_dir = args.out_dir / timestamp
+    run_output_dir.mkdir(parents=True, exist_ok=True)
 
-    # アーカイブディレクトリを作成
+    # タイムスタンプ付きのアーカイブディレクトリを作成
     archive_dir = Path("archive")
-    archive_dir.mkdir(parents=True, exist_ok=True)
+    run_archive_dir = archive_dir / timestamp
+    run_archive_dir.mkdir(parents=True, exist_ok=True)
 
     # 入力順を揃える: 画像とテキストの数は合わせる
     images = sorted([p for p in args.img_dir.iterdir() 
@@ -190,22 +194,12 @@ def main():
                 position=meta.get("position", "center"),
             )
 
-            out_file = args.out_dir / f"{idx:02d}_{img_path.stem}.jpg"
+            out_file = run_output_dir / f"{idx:02d}_{img_path.stem}.jpg"
             im.save(out_file, "JPEG", quality=95, optimize=True, progressive=True)
             print(f"✅ 保存完了: {out_file}")
 
             # 処理済み画像をアーカイブ
-            archive_target_path = archive_dir / img_path.name
-            
-            # アーカイブ先に同名ファイルが存在する場合の衝突回避
-            if archive_target_path.exists():
-                i = 1
-                stem = img_path.stem
-                suffix = img_path.suffix
-                while archive_target_path.exists():
-                    archive_target_path = archive_dir / f"{stem}_{i}{suffix}"
-                    i += 1
-            
+            archive_target_path = run_archive_dir / img_path.name
             img_path.rename(archive_target_path)
             print(f"📁 アーカイブ完了: {archive_target_path}")
 
@@ -216,20 +210,11 @@ def main():
     # 処理済みJSONをアーカイブ
     json_path = args.text_json
     if json_path.exists():
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        archive_json_path = archive_dir / f"{json_path.stem}_{timestamp}{json_path.suffix}"
-
-        # 衝突回避
-        i = 1
-        stem_base = f"{json_path.stem}_{timestamp}"
-        while archive_json_path.exists():
-            archive_json_path = archive_dir / f"{stem_base}_{i}{json_path.suffix}"
-            i += 1
-        
+        archive_json_path = run_archive_dir / json_path.name
         json_path.rename(archive_json_path)
         print(f"📁 JSONファイルをアーカイブ完了: {archive_json_path}")
 
-    print(f"🎉 処理完了！ {args.out_dir}/ を確認してください。")
+    print(f"🎉 処理完了！ {run_output_dir}/ を確認してください。")
     print("📱 TikTokアプリで画像を選択してカルーセル投稿できます！")
 
 
